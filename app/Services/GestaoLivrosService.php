@@ -4,47 +4,20 @@ namespace App\Services;
 
 use App\Models\AutoresModel;
 use App\Models\LivrosModel;
-use Illuminate\Support\Facades\Response;
+use Log;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\File;
 
 class GestaoLivrosService
 {
-    public function listarLivros(): array
+    public function listarLivros($page)
     {
-        $autores = AutoresModel::get()->all();
-
-        $livros = LivrosModel::with('autor')->paginate(10);
-
-        return [
-            'autores' => $autores,
-            'livros' => $livros
-        ];
+        return LivrosModel::with('autor')->paginate(10, ['*'], 'page', $page);
     }
 
-    public function registraLivro($titulo, $descricao, $autor, $dataPublicacao, $capa): string
+    public function getWritters()
     {
-        try {
-            $livro = LivrosModel::firstOrCreate(
-                [
-                    'titulo' => $titulo,
-                    'autor_id' => $autor
-                ],
-                [
-                    'descricao' => $descricao,
-                    'data_publicacao' => $dataPublicacao
-                ]
-            );
-
-            $this->salvaArquivo($capa, $autor, $livro->id);
-
-            $response = 'Livro registrado com sucesso.';
-        } catch (\Throwable $th) {
-            return 'Erro ao registrar livro.';
-        }
-
-        $response = !$livro->wasRecentlyCreated ? 'Livro já existe.' : $response;
-
-        return $response;
+        return AutoresModel::get()->all();
     }
 
     private function salvaArquivo($arquivo, $idAutor, $idLivro)
@@ -76,32 +49,50 @@ class GestaoLivrosService
         try {
             LivrosModel::destroy($id);
 
-            return 'Livro deletado com sucesso.';
+            return [
+                'success' => 'Livro deletado com sucesso.',
+                'status' => Response::HTTP_ACCEPTED
+            ];
         } catch (\Throwable $th) {
-            return 'Erro ao deletar livro.';
+            return [
+                'error' => 'Erro ao deletar livro.',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
         }
     }
 
-    public function editarLivro($id, $titulo, $descricao, $autor, $dataPublicacao, $capa)
+    public function registraOuAtualizaLivro($id = null, $titulo, $descricao, $autor, $dataPublicacao, $capa)
     {
+        $dados =[
+            'titulo' => $titulo,
+            'autor_id' => $autor,
+            'descricao' => $descricao,
+            'data_publicacao' => $dataPublicacao
+        ];
+
+        if ($id !== null) {
+            $dados['id'] = $id;
+        }
         try {
             $livro = LivrosModel::updateOrCreate(
-                ['id' => $id],
-                [
-                    'titulo' => $titulo,
-                    'autor_id' => $autor,
-                    'descricao' => $descricao,
-                    'data_publicacao' => $dataPublicacao
-                ]
+                $dados
             );
 
             if(!is_null($capa)){
                 $this->salvaArquivo($capa, $autor, $livro->id);
             }
 
-            return 'Livro atualizado com sucesso.';
+            $isUpdated = $livro->wasRecentlyCreated ? 'criado' : 'atualizado';
+
+            return [
+                'success' => 'Livro '.$isUpdated.' com sucesso.',
+                'status' => Response::HTTP_ACCEPTED
+            ];
         } catch (\Throwable $th) {
-            return 'Erro ao atualizar livro.';
+            return [
+                'error' => 'Erro ao atualizar livro.' . $th->getMessage(),
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
         }
     }
 
@@ -117,6 +108,7 @@ class GestaoLivrosService
             header("Content-type: $mimeType");
             header("Content-Length: " . strlen($image));
             echo $image;
+            return;
         }
 
         abort(404);

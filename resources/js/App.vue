@@ -1,5 +1,13 @@
 <template>
-    <h2>
-        VueSchool Rocks! 🤘 
-    </h2>
+    <div class="text-white">
+        <Main />
+    </div>
 </template>
+
+<script setup>
+    import Main from "./components/Main.vue";
+</script>
+
+<style>
+
+</style>
