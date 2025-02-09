@@ -30,5 +30,3 @@ Route::get('/get-livros', [GestaoLivrosController::class, 'index'])->name('get-l
 Route::post('/registra-livros', [GestaoLivrosController::class, 'registraLivro'])->name('registra-livros');
 
 Route::delete('/deleta-livro/{id}', [GestaoLivrosController::class, 'deletaLivro'])->name('deleta-livro');
-
-Route::get('/imagem/{idAutor}/{idLivro}', [GestaoLivrosController::class, 'exibirImagem'])->name('imagem.show');

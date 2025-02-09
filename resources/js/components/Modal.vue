@@ -1,52 +1,43 @@
 <template>
-    <div v-if="isOpen" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="modal bg-white rounded-lg shadow-lg w-11/12 sm:w-1/3 p-6 relative">
-        <button class="absolute top-0 right-0 p-2 text-gray-600 close-btn" @click="$emit('close')">X</button>
-        <div class="modal-content">
+  <transition name="fade">
+    <div v-if="isOpen" class="fixed inset-0 flex items-center justify-center bg-sky-500/50 z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg sm:max-w-2xl p-6 relative animate-fadeIn overflow-hidden max-h-[90vh] flex flex-col">
+        <button 
+          class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition duration-300" 
+          @click="$emit('close')"
+        >
+          &times;
+        </button>
+        <div class="overflow-y-auto flex-1 p-2">
           <slot></slot>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    props: {
-      isOpen: Boolean,
-    },
-  };
-  </script>
-  
+  </transition>
+</template>
+
+<script>
+export default {
+  props: {
+    isOpen: Boolean,
+  },
+};
+</script>
+
 <style scoped>
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .modal {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 300px;
-    position: relative;
-  }
-  
-  .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: red;
-    color: white;
-    border: none;
-    padding: 5px;
-    cursor: pointer;
-  }
-  </style>
-  
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
